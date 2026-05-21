@@ -10,14 +10,71 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-</head>
+    <style>
+      .navbar_menu {
+        list-style-type: none;
+        align-items: center;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 10px; /*Pushes the links down from the top */
+      }
+      .navbar_menu li {
+        position: relative;
+        justify-content: center;
+        
+      }
+      .navbar_menu a{
+        text-decoration: none;
+        color: white;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+      }
+      .navbar_menu li a {
+        font-weight: 500;
+        padding: .5rem .85rem;
+        text-align: center;
+      }
+
+      .navbar_menu li:hover a:hover {
+        background-color: white;
+        color: purple;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+
 
 <body>
 
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-          <a class="navbar-brand" href="#"><strong>StudyBuddies</strong></a>
+    <nav class="navbar">
+        <div class="container navbar_inner">
+          <a class="navbar-brand" href="#">
+            <img src="static/images/studybuddies_logo.png" width="175" height="50" alt="">
+          </a>
+          <ul class="navbar_menu" id="nav-menu" role="list">
+            <li>
+              <a href="#">Home</a>
+            </li>
+            <li>
+              <a href="#">Register</a>
+            </li>
+            <li>
+              <a href="#">Login</a>
+            </li>
+            <li>
+              <a href="#">My Dashboard</a>
+            </li>
+            <li>
+              <a href="#">Find My Buddy</a>
+            </li>
+            <li>
+              <a href="#">Find My Group</a>
+            </li>
+            <li>
+              <a href="#">Log Out</a>
+            </li>
+          </ul>
         </div>
     </nav>
 
@@ -38,8 +95,9 @@
             <img class="d-block w-100" src="/static/images/ecu_campus_3.jpg" alt="Third slide">
           </div>
         </div>
+
+        {% block content %}{% endblock %}
     </div>
-    {% block content %}{% endblock %}
 
 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

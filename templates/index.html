@@ -2,17 +2,11 @@
 {% block content %}
 <div class="homepage-overlay">
 
-  <div class="logo-overlay">
-    <img src="{{ url_for('static', filename='images/ecustudybuddylogo.jpg') }}" alt="logo" class="homepage-logo">
+  <div class="welcome-overlay">
+    <h1 class="welcome-message">Welcome to ECU Study Buddies!</h1>
   </div>
-  
-  <div class="vertical_divider"></div>
 
   
-  <div class="button-overlay">
-    <div class="homepage-buttons">
-      <a href="{{ url_for('register') }}" class="btn-register">Register</a>
-      <a href="{{ url_for('login') }}" class="btn-login">Login</a>
-    </div>
+  
 </div>
 {% endblock %}

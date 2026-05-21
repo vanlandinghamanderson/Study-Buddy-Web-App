@@ -1,12 +1,20 @@
-body {
+html, body {
   margin: 0;
   padding: 0; /* Removes the white padding */
   height: 100vh; /* Full height */
   overflow: hidden; /* Prevents scrolling */
 }
 
+/* ----- Navigation Bar ----- */
 .navbar {
   background-color: #7400aa !important;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+
+
+.carousel {
+  position: relative;
 }
 
 .carousel-overlay {
@@ -15,162 +23,42 @@ body {
   left: 0;
   width: 100%; /* Full width */
   height: 100%; /* Full height */
-  background-color: rgba(0, 0, 0, 0.5); /* Black tint with 50% opacity */
-  z-index: 5;/* Ensures it appears above the carousel images */
+  background-color: rgba(0, 0, 0, 0.8); /* Black tint with 50% opacity */
+  z-index: 5; /* Ensures it appears above the carousel images */
+}
+
+.carousel,
+.carousel-inner,
+.carousel-item {
+  height: calc(100vh - 56px); /* subtract navbar height */
+}
+
+.carousel-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .homepage-overlay {
   position: absolute;
   top: 30%;
-  left: 5%;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 10;
-}
-
-.logo-overlay {
   display: flex;
-  justify-content: center; /* Center the logo horizontally within its container */
-  align-items: center; /* Center the logo vertically */
-  width: 150px; /* Adjust the width of the logo container */
-  height: 150px; /* Adjust the height of the logo container */
-  margin-left: 250px; /* Adjust the left margin to position the logo */
+  align-items: center;
+  justify-content: center;
 }
 
-.homepage-logo {
-  width: 450px; /* Adjust the size of the logo */
-  height: auto;
-}
-
-.vertical_divider {
-  position: absolute;
-  top: 50%; /* Centers vertically */
-  left: 50%; /* Centers horizontally */
-  transform: translate(-70%, -50%); /* Adjusts for accurate centering */
-  height: 200px;
-  width: 5px;
-  background-color: white;
-  border-radius: 3px;
-}
-
-.homepage-text {
-  display: block;
-}
-.button-overlay {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end; /* Centers the buttons horizontally */
-  margin-right: 250px
-}
-
-.homepage-buttons {
-  display: inline-block;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.homepage-buttons a {
-  padding: 20px 75px; /* Make the buttons however it looks like */
-  font-weight: bold;
-  text-decoration: none;
-  margin-bottom: 25px; /* Space between the buttons */
-  border-radius: 10px;
-  transition: 0.3s;
-  border: 3px solid white;
-  display: block; /* The buttons top of each other */
-}
-  
-
-.homepage-buttons .btn-login {
-  background-color: transparent;
+.welcome-overlay {
   color: white;
+  flex-wrap: nowrap;
 }
 
-.homepage-buttons .btn-login:hover {
-  background-color: white;
-  color: purple;
-}
-
-.homepage-buttons .btn-register {
-  background-color: transparent;
-  color: white;
-}
-
-.homepage-buttons .btn-register:hover {
-  background-color: white;
-  color: purple;
-}
-
-.register-overlay {
-  position: absolute; /* Ensures it overlays the entire viewport */
-  top: 0; /* If top and left deleted it automatically disapeears */
-  left: 0;
-  width: 70%; /* If those 2 deleted the registraion form pops on the left*/
-  height: 100%;
-  background: rgba(0,0,0,0.5); /* Tints the background while the regstration pops up*/
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-form {
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: 8px;
-  color:#7400aa;
-}
-
-.form-group {
-  color: black;
-}
-
-.btn-primary {
-  background-color: #7400aa;
-  border-color: #7400aa;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.btn-primary:hover {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.login-overlay {
-  position: absolute; /* Ensures it overlays the entire viewport */
-  top: 0; /* If top and left deleted it automatically disapeears */
-  left: 0;
-  width: 100%; /* If those 2 deleted the registraion form pops on the left*/
-  height: 100%;
-  background: rgba(0,0,0,0.5); /* Tints the background while the regstration pops up*/
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-form {
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: 8px;
-  color:#7400aa;
-}
-
-.form-group {
-  color: black;
-}
-
-.btn-primary {
-  background-color: #7400aa;
-  border-color: #7400aa;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.btn-primary:hover {
-  background-color: rgba(0, 0, 0, 0.5);
+.welcome-overlay, .welcome-message {
+  font-size: 4rem;
+  text-align: center;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
 }
