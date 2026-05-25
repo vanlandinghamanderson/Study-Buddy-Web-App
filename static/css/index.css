@@ -1,6 +1,6 @@
 html, body {
   margin: 0;
-  padding: 0; /* Removes the white padding */
+  padding: 0;
   height: 100vh; /* Full height */
   overflow: hidden; /* Prevents scrolling */
 }
@@ -9,8 +9,40 @@ html, body {
 .navbar {
   background-color: #7400aa !important;
   text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  flex-direction: row;
+  width: 100%;
+  padding-left: 3rem;
+  padding-right: 3rem;
 }
 
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  color: white;
+  font-weight: bolder;
+  margin: 0;
+  padding: 0;
+}
+
+
+.nav {
+  gap: .5rem;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.nav .nav-item a {
+  color: white;
+}
+
+.nav .nav-item a:hover {
+  background-color: rgba(255, 255, 255, 0.556);
+  border-radius: 20px 20px;
+}
 
 
 .carousel {
@@ -58,7 +90,20 @@ html, body {
 }
 
 .welcome-overlay, .welcome-message {
+  display: flex;
   font-size: 4rem;
+  font-weight: 750;
   text-align: center;
   text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+/** ----- Register ----- **/
+.register-container, .login-container {
+  color: white;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+  font-size: 2rem;
+  font-weight: 700;
+  position: sticky;
+  flex-wrap: wrap;
+  top: 60px;
 }
