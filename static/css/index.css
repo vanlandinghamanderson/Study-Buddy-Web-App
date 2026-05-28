@@ -27,7 +27,6 @@ html, body {
   padding: 0;
 }
 
-
 .nav {
   gap: .5rem;
   display: flex;
@@ -101,9 +100,7 @@ html, body {
 .register-container, .login-container {
   color: white;
   text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
-  font-size: 2rem;
-  font-weight: 700;
   position: sticky;
-  flex-wrap: wrap;
   top: 60px;
+  margin-top: 10px;
 }
