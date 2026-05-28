@@ -7,7 +7,7 @@ $('#register-btn').click(function() {
     var password = $('#password').val()
 
     if (!first_name || !last_name || !degree || !major || !username || !password) {
-        alert('Please enter all fields...', 'error');
+        showFlash('Please enter all fields...', 'error');
         return;
     }
 
@@ -21,6 +21,35 @@ $('#register-btn').click(function() {
         success: function(response) {
             if(response.status == 'success') {
                 showFlash('Account created! Redirecting...', 'success');
+                setTimeout(function() {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            } else {
+                showFlash(response.message, 'error');
+            }
+        }
+    });
+});
+
+$('#login-btn').click(function() {
+    var username = $('#username').val()
+    var password = $('#password').val()
+
+    if (!username || !password) {
+        showFlash('Please enter all fields...', 'error');
+        return;
+    }
+
+    $.ajax({
+        url: '/login',
+        method: 'POST',
+        data: {
+            username: username,
+            password: password
+        },
+         success: function(response) {
+            if(response.status == 'success') {
+                showFlash('Redirecting...', 'success');
                 setTimeout(function() {
                     window.location.href = '/dashboard';
                 }, 1500);

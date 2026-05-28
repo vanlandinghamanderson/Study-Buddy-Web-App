@@ -89,19 +89,21 @@ def register():
     return render_template('register.html', all_degrees=all_degrees, all_majors=all_majors)
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
-        existing_student = Student.query.filter_by(username=username).first()
+        student = Student.query.filter_by(username=username).first()
 
-        if existing_student and existing_student.password==password:
-            session['first_name'] = existing_student.first_name
+        if student and student.passowrd == password:
+            session['first_name'] = student.first_name
             session['new_student'] = False
-            return redirect('dashboard')
+            return jsonify({'status': 'success'})
         
+        return jsonify({'message':'Sorry, the username or password is unavilable', 'status':'error'})
+    
     return render_template('login.html')
 
 @app.route('/dashboard')
@@ -122,6 +124,11 @@ def dashboard():
         message = f"{first_name}'s dashboard"
     
     return render_template('dashboard.html', message=message, first_name=first_name)
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
 
 if __name__ == '__main__':
     app.debug = True
