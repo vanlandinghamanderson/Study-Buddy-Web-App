@@ -119,6 +119,7 @@ html, body {
 
 /* ----- Register and Login Buttons ----- */
 .register-container button, .login-container button {
+  margin-top: 15px;
   background-color: #7400aa;
   color: white;
   border: none;
