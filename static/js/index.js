@@ -1,4 +1,5 @@
-$('#register-btn').click(function() {
+$(document).ready(function() {
+    $('#register-btn').click(function() {
     var first_name = $('#first_name').val()
     var last_name = $('#last_name').val()
     var degree = $('#degree').val()
@@ -58,8 +59,8 @@ $('#login-btn').click(function() {
             }
         }
     });
+    });
 });
-
 function showFlash(message, type) {
     $('#flash-message')
     .text(message)

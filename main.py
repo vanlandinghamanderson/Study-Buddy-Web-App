@@ -62,13 +62,13 @@ def register():
         last_name = request.form.get('last_name')
         degree_id = request.form.get('degree_id')
         major_id = request.form.get('major_id')
-        username = request.form.get('degree_id')
+        username = request.form.get('username')
         password = request.form.get('password')
         
-    # Checks if the username exists
-        existing_student = Student.query.filter_by(username=username).first()
-        if existing_student:
-            return jsonify({'message': 'Username exists...', 'status': 'error'})
+        # Checks if the username exists
+        if Student.query.filter_by(username=username).first():
+            return jsonify({'message': 'Username exists...', 'status':'error'})
+        
     
         #Adds the new student to the database
         new_student = Student(first_name=first_name,
@@ -97,12 +97,12 @@ def login():
 
         student = Student.query.filter_by(username=username).first()
 
-        if student and student.passowrd == password:
+        if student and student.password == password:
             session['first_name'] = student.first_name
             session['new_student'] = False
             return jsonify({'status': 'success'})
         
-        return jsonify({'message':'Sorry, the username or password is unavilable', 'status':'error'})
+        return jsonify({'message':'Sorry, the username or password is unavailable', 'status':'error'})
     
     return render_template('login.html')
 
