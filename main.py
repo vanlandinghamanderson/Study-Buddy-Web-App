@@ -130,6 +130,14 @@ def logout():
     session.clear()
     return redirect('/')
 
+@app.route('/find_buddies')
+def find_buddies():
+    return render_template('find_buddies.html')
+
+@app.route('/find_groups')
+def find_groups():
+    return render_template('find_groups.html')
+
 
 if __name__ == '__main__':
     app.debug = True
