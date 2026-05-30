@@ -3,6 +3,11 @@ html, body {
   padding: 0;
   height: 100vh; /* Full height */
   overflow: hidden; /* Prevents scrolling */
+  background-image: url('/static/images/ecu_campus.jpg');
+  background-color:rgba(0, 0, 0, 0.8);
+  background-blend-mode: overlay;
+
+  background-size: cover; /* Ensures the image fits the desktop */
 }
 
 /* ----- Navigation Bar ----- */
@@ -43,64 +48,81 @@ html, body {
   border-radius: 20px 20px;
 }
 
-
-.carousel {
-  position: relative;
-}
-
-.carousel-overlay {
-  position: absolute; /* Ensures it overlays the carousel */
-  top: 0;
-  left: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  background-color: rgba(0, 0, 0, 0.8); /* Black tint with 50% opacity */
-  z-index: 5; /* Ensures it appears above the carousel images */
-}
-
-.carousel,
-.carousel-inner,
-.carousel-item {
-  height: calc(100vh - 56px); /* subtract navbar height */
-}
-
-.carousel-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.homepage-overlay {
-  position: absolute;
-  top: 30%;
-  width: 100%;
+/* ----- Main Section ----- */
+.main-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 10;
-  display: flex;
-  align-items: center;
   justify-content: center;
 }
 
-.welcome-overlay {
+.welcome-container {
   color: white;
-  flex-wrap: nowrap;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; /* Stacks vertically */
+  text-shadow: 3px 3px 6px rgba(0, 0 , 0, 0.5);
+  margin-top: 125px;
+  gap: 20px;
 }
 
-.welcome-overlay, .welcome-message {
+.welcome-container h1 {
   display: flex;
   font-size: 4rem;
   font-weight: 750;
   text-align: center;
   text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+  margin-top: 60px;
+}
+
+.welcome-container img {
+  max-width: 625px;
+  height: 300px;
+  margin: 0 20px;
+  display: flex;
+  filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.5));
+}
+
+.welcome-container p {
+  font-size: 1.5rem;
+  text-align: center;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
 }
 
 /** ----- Register ----- **/
-.register-container, .login-container {
+.register-container {
   color: white;
   text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
   position: sticky;
   top: 60px;
-  margin-top: 10px;
+  margin-top: 75px;
+  gap: 10px;
+  display: flex;
+  justify-content: center; /* Centers form horizontally */
+  align-items: center;     /* Centers form vertically */
+  flex-direction: column; /* Stacks form elements vertically */
+}
+
+.register-container h1 {
+  text-align: center;
+  font-weight: 750;
+  gap: 50px;
+  margin-bottom: 25px;
+}
+
+.register-container input, .register-container select {
+  padding: 10px;
+  width: 400px;
+  border: none;
+  border-radius: 5px;
+}
+
+/* ----- Register and Login Buttons ----- */
+.register-container button, .login-container button {
+  background-color: #7400aa;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.5));
+  border-radius: 5px;
 }

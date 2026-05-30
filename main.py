@@ -41,6 +41,7 @@ class Major(db.Model):
 
     students = db.relationship('Student', backref='major', lazy=True)
 
+
 # Creates all the tables for the database
 with app.app_context():
     db.create_all()
@@ -108,7 +109,6 @@ def login():
 
 @app.route('/dashboard')
 def dashboard():
-
     # If the first name of a student is not in the dashboard, redirect to login
     if 'first_name' not in session:
         return redirect(url_for('login'))
@@ -129,6 +129,7 @@ def dashboard():
 def logout():
     session.clear()
     return redirect('/')
+
 
 if __name__ == '__main__':
     app.debug = True
