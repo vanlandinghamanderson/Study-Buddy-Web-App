@@ -90,7 +90,7 @@ html, body {
 }
 
 /** ----- Register ----- **/
-.register-container {
+.register-container, .login-container {
   color: white;
   text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
   position: sticky;
@@ -103,14 +103,14 @@ html, body {
   flex-direction: column; /* Stacks form elements vertically */
 }
 
-.register-container h1 {
+.register-container h1, .login-container h1 {
   text-align: center;
   font-weight: 750;
   gap: 50px;
   margin-bottom: 25px;
 }
 
-.register-container input, .register-container select {
+.register-container input, .register-container select, .login-container input{
   padding: 10px;
   width: 400px;
   border: none;
@@ -119,7 +119,7 @@ html, body {
 
 /* ----- Register and Login Buttons ----- */
 .register-container button, .login-container button {
-  margin-top: 15px;
+  margin-top: 15px; /* Adds the space above the button */
   background-color: #7400aa;
   color: white;
   border: none;
