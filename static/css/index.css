@@ -127,3 +127,18 @@ html, body {
   filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.5));
   border-radius: 5px;
 }
+
+/* ----- The Dashboard ----- */
+.dashboard-container {
+  margin-top: 25px;
+  color: white;
+  display: flex;
+  margin-left: 0;
+  margin-right: auto;
+  padding-left: 25px;
+}
+
+.dashboard-container h1 {
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+    font-weight: 750;
+}
