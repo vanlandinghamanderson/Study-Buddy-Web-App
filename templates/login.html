@@ -1,24 +1,29 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="login-container">
+<div class="card form-card">
     <h1>Login Your Account</h1>
 
-        <div id="flash-message" class="flash hide"></div>
+    {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
 
-
-     <!-- Username section -->
+    <form method="POST" action="{{ url_for('login')}}">
         <div class="form-group">
-            <label for="username">Username:</label>
-            <input type="text" class="form-control" id="username" placeholder="Enter Your Username...">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
         </div>
 
-         <!-- Password section -->
         <div class="form-group">
-            <label for="password">Password:</label>
-            <input type="password" class="form-control" id="password" placeholder="Enter Your Password...">
+            <label for="password">Password</label>
+            <div class="password-wrap">
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+                <button type="button" class="toggle-password" data-target="password">Show</button>
+            </div>
         </div>
 
-        <button id="login-btn">Login</button>
+        <button type="submit" class="submit-btn">Login</button>
+        
+    </form>
 </div>
 
 {% endblock %}

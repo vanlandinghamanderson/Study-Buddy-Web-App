@@ -1,7 +1,29 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="dashboard-container ">
-  <h1>{{ message }}</h1>
+{% if auth_event == 'register' %}
+  <h1>Welcome, {{ student.first_name }}!</h1>
+{% elif auth_event == 'login' %}
+  <h1>Welcome back, {{ student.first_name }}!</h1>
+{% else %}
+  <h1> {{student.first_name}}'s Dashboard </h1>
+{% endif %}
+
+<div class="column">
+  <div class="buddy-container">
+    <h3>Your Buddies</h3>
+    <table class="buddy-table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Class</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+  <div class="group-container">
+    <h3>Your Groups</h3>
+  </div>
 </div>
 {% endblock %}

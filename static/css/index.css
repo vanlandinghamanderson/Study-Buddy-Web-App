@@ -49,9 +49,10 @@ html, body {
 }
 
 /* ----- Main Section ----- */
-.main-container {
-  display: flex;
-  justify-content: center;
+.container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
 }
 
 .welcome-container {
@@ -128,17 +129,46 @@ html, body {
   border-radius: 5px;
 }
 
-/* ----- The Dashboard ----- */
-.dashboard-container {
-  margin-top: 25px;
+.container h1 {
   color: white;
-  display: flex;
-  margin-left: 0;
-  margin-right: auto;
-  padding-left: 25px;
 }
 
-.dashboard-container h1 {
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
-    font-weight: 750;
+/* ----- Dashboard ----- */
+.column {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  flex-direction: column;
+  color: white;
+}
+
+.card {
+  background: none;
+}
+
+.form-card {
+  max-width: 420px;
+  margin: 2rem auto;
+}
+
+.form-group label {
+  display: block;
+  color: white;
+
+}
+.form-group input, .form-group select {
+  width: 100%;
+  padding: .55rem .65rem;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: .55rem .55rem;
+  background-color: #7400aa;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
 }
