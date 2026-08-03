@@ -9,21 +9,74 @@
   <h1> {{student.first_name}}'s Dashboard </h1>
 {% endif %}
 
-<div class="column">
-  <div class="buddy-container">
-    <h3>Your Buddies</h3>
-    <table class="buddy-table">
-      <thead>
-        <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Class</th>
-          <th scope="col">Action</th>
-        </tr>
-      </thead>
-    </table>
+<div class="dashboard-container">
+  <div class="card">
+    <h3 class="collapsible-header" data-target="#buddies-content">
+      Your Buddies
+      <span class="toggle-arrow">▾</span>
+    </h3>
+      <div class="collapsible-content" id="buddies-content">
+        {% if matches %}
+        <table class="table">
+          <thead>
+            <tr>Name</tr>
+            <tr>Course</tr>
+            <tr>Action</tr>
+          </thead>
+          <tbody>
+            {% for match in matches %}
+            {% set buddy = match.student_b if match.student_a_id == student.id else match.student_a %}
+            <tr>
+              <td><strong>{{ buddy.first_name }} {{ buddy.last_name }}</strong></td>
+              <td>{{ match.course.dept }}{{ match.course.code }}</td>
+              <td class="table-actions">
+                <form method="POST" action="{{ url_for('delete_buddy', match_id=match.id) }}">
+                  <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="empty-message">You don't have any buddies on your list...</p>
+      {% endif %}
+    </h3>
   </div>
-  <div class="group-container">
-    <h3>Your Groups</h3>
+
+  <div class="card">
+    <h3 class="collapsible-header" data-target="#groups-content">
+      Your Groups
+      <span class="toggle-arrow">▾</span>
+    </h3>
+    <div class="collapsible-content" id="group-content">
+      {% if groups %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Group Name</th>
+            <th>Course</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for group in groups %}
+          <tr{% if group.is_full %} class="table-active"{% endif %}>
+            <td><strong>{{ group.course.dept }}{{ group.course.code }}{{ group.course.name }}</strong></td>
+            <td>{{ group.members | map(attribute='student.first_name, student.last_name') | join(', ') }}</td>
+            <td class="table-actions">
+              <form method="POST" action="{{ url_for('leave_group', group_id=group.id) }}">
+                <button type="submit" class="btn btn-danger">Leave</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="empty-message">You don't have any groups on your list...</p>
+      {% endif %}
+    </div>
   </div>
 </div>
 {% endblock %}

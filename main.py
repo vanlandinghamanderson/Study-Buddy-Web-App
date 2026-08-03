@@ -6,19 +6,20 @@ from functools import wraps
 from datetime import datetime
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import IntegrityError
 
 load_dotenv()
 
 app = Flask(__name__)
 
 # Configure the database connection
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///study_buddy.db')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-GROUP_SIZE = 5
+GROUP_SIZE = 4
 
 # ---------- MODELS ---------- #
 
@@ -132,12 +133,6 @@ def student_groups(student_id):
             .order_by(Group.created_at.desc())
             .all())
 
-
-
-# Creates all the tables for the database
-with app.app_context():
-    db.create_all()
-
 @app.route('/')
 def index():
     if current_student():
@@ -195,7 +190,7 @@ def login():
         student = Student.query.filter_by(username=username).first()
         if student and student.check_password(password):
             session['student_id'] = student.id
-            session['auth_event'] = 'logim'
+            session['auth_event'] = 'login'
             return redirect(url_for('dashboard'))
         return render_template('login.html', error='Invalid username or password')
     return render_template('login.html')
@@ -206,15 +201,11 @@ def dashboard():
     student = current_student()
     matches = student_buddy_matches(student.id)
     groups = student_groups(student.id)
-    pending_request = (BuddyRequest.query
-                       .filter_by(student_id=student.id, status='waiting')
-                       .first())
     auth_event = session.pop('auth_event', None)
     return render_template('dashboard.html',
                            student=student,
                            matches=matches,
                            groups=groups,
-                           pending_request=pending_request,
                            auth_event=auth_event)
 
 @app.route('/logout')
@@ -226,40 +217,92 @@ def logout():
 # all_courses
 @app.route('/find_buddies', methods=['GET', 'POST'])
 def find_buddies():
-
-    #Grabs the student id from the session
-    student_id = session.get('student_id')
-
-    if not student_id:
-        return redirect(url_for('login'))
-    
-    current_student = Student.query.get_or_404(student_id) # Saves the current student while they are logged in
-
-    # Queries all the courses for a student to select to find buddies for that course
-    all_courses = Course.query.order_by(Course.dept).all()
-    buddies = []
-    selected_course = None
-
-    # Handles the form submission for finding buddies
-    if request.method == 'POST':
-        dept = request.form.get('dept')
-        code = request.form.get('code')
-        name = request.form.get('name')
-
-        selected_course = Course.query.filter_by(dept=dept, code=code, name=name).first() # Finds the selected course from the database based on the form input
-
-        # If the selected course exists, query the buddies for that course
-        if selected_course:
-            buddies = Buddy.query.filter_by(course_id=selected_course.id).all()
-        else:
-            jsonify({'message': 'Course not found', 'status': 'error'})
-
-    return render_template('find_buddies.html', current_student=current_student, all_courses=all_courses, buddies=buddies, selected_course=selected_course)
+    return render_template('find_buddies.html')
 
 @app.route('/find_groups')
 def find_groups():    
     return render_template('find_groups.html')
 
+
+# ----------  Delete Your Buddy from the Dashboard ---------- #
+@app.route('/buddy/<int:match_id>/end', methods=['POST'])
+@login_required
+def delete_buddy(match_id):
+    student = current_student()
+    match = db.session.get(BuddyMatch, match_id)
+    if match and student.id in (match.student_a_id, match.student_b_id):
+        db.session.delete(match)
+        db.session.commit()
+    return redirect(url_for('dashboard'))
+
+# ---------- Leave Your Group from the Dashboard ---------- #
+@app.route('/group/<int:group_id>/leave', methods=['POST'])
+@login_required
+def leave_group(group_id):
+    student = current_student()
+    group_member = GroupMember.query.filter_by(group_id=group_id, student_id=student.id).first()
+    if group_member:
+        group = db.session.get(Group, group_id)
+        db.session.delete(group_member)
+        # Check if the group is now empty
+        if group and group.is_full:
+            group.is_full = False
+        db.session.commit()
+    return redirect(url_for('dashboard'))
+
+# ---------- Seed Example Data ---------- #
+def seed_students():
+    if Student.query.count() == 0:
+        return
+
+    def student(first_name, last_name, degree_type, major_name, username):
+        degree = Degree.query.filter_by(type=degree_type).first()
+        major = Major.query.filter_by(name=major_name).first()
+        s = Student(first_name=first_name, last_name=last_name,
+                    degree_id=degree.id, major_id=major.id,
+                    username=username)
+        s.set_password('studybuddy123')
+        db.session.add(s)
+        db.session.flush()
+        return s
+
+    noah_sweatte = student(first_name='Noah', last_name='Sweatte', degree_id=1, major_id=1, username='noah_sweatte')
+    mason_hoggard = student(first_name='Mason', last_name='Hoggard', degree_id=1, major_id=1, username='mason_hoggard')
+    john_hills = student(first_name='John', last_name='Hills', degree_id=2, major_id=2, username='john_hills')
+    andrew_smith = student(first_name='Andrew', last_name='Smith', degree_id=2, major_id=2, username='andrew_smith')
+    edward_hendron = student(first_name='Edward', last_name='Hendron', degree_id=1, major_id=3, username='edward_hendron')
+
+    mia_jones = student(first_name='Mia', last_name='Jones', degree_id=1, major_id=3, username='mia_ding')
+    emma_jones = student(first_name='Emma', last_name='Jones', degree_id=2, major_id=4, username="emma_jones")
+    haley_wells =  student(first_name='Haley', last_name='Wells', degree_id=2, major_id=4, username="haley_wells")
+    samantha_baker = student(first_name='Samantha', last_name='Baker', degree_id=1, major_id=5, username="samantha_baker")
+    josie_andrews = student(first_name='Josie', last_name='Andrews', degree_id=1, major_id=5, username="josie_andrews")
+
+    db.session.commit()
+
+    def searching_buddy(student_row, course_dept, course_code):
+        course = Course.query.filter_by(dept=course_dept, code=course_code).first()
+        db.session.add(BuddyRequest(student_id=student_row.id, course_id=course.id))
+
+    searching_buddy(noah_sweatte, 'CSCI', '1010')
+    searching_buddy(mason_hoggard, 'CSCI', '1010')
+    searching_buddy(john_hills, 'MATH', '2121')
+    searching_buddy(josie_andrews, 'COMM', '2020')
+
+    def searching_group(course_dept, course_code, members):
+        course = Course.query.filter_by(dept=course_dept, code=course_code).first()
+        group = Group(course_id=course.id)
+        db.session.add(group)
+        db.session.flush()  # Flush to get the group ID
+        for member in members:
+            db.session.add(GroupMember(group_id=group.id, student_id=member.id))
+
+    searching_group('CSCI', '2400', [mia_jones, emma_jones, haley_wells])
+    searching_group('MATH', '2228', [edward_hendron, andrew_smith, samantha_baker])
+
+with app.app_context():
+    db.create_all()
+    seed_students()
 
 if __name__ == '__main__':
     app.debug = True
