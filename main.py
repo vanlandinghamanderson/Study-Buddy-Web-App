@@ -284,14 +284,16 @@ def match_buddy_request(request_id):
     if not waiting or waiting.status != 'waiting':
         return redirect(url_for('find_buddies', error='That student is not takimg the course'))
     if waiting.student_id == student.id:
-        return redirect(url_for('find_a_budies'), error='You cannot match with yourself...')
+        return redirect(url_for('find_buddies'), error='You cannot match with yourself...')
+    course = waiting.course
 
     already_matched = BuddyMatch.query.filter(
         db.or_(BuddyMatch.student_a_id == student.id, BuddyMatch.student_b_id == student.id),
-        BuddyMatch.course_id == waiting.course_id).first()
+        BuddyMatch.course_id == waiting.course_id
+    ).first()
     
     if already_matched:
-        return redirect(url_for('find_a_buddy_page'), error='You already matched this student!')
+        return redirect(url_for('find_buddies'), error='You already matched this student!')
 
     waiting.status = 'matched'
     db.session.add(BuddyMatch(course_id = waiting.course_id, student_a_id=student.id,
@@ -307,7 +309,7 @@ def cancel_buddy_request():
     if request:
         db.session.delete(request)
         db.session.commit()
-    return redirect(url_for('findin'))
+    return redirect(url_for('dashboard'))
 
 # ---------- Seed Example Data ---------- #
 
@@ -345,39 +347,37 @@ def seed_courses():
     db.session.commit()
 
 def seed_students():
-    def student(first_name, last_name, degree_id, major_id, username):
-        s = Student.query.filter_by(username=username).first()
-        if s:
-            return s
-        s = Student(first_name=first_name, last_name=last_name,
-                    degree_id=degree_id, major_id=major_id,
+    def student(first_name, last_name, degree_type, major_name, username):
+        existing = Student.query.filter_by(username=username).first()
+        if existing:
+            return existing
+        degree = Degree.query.filter_by(type=degree_type).first()
+        major = Major.query.filter_by(name=major_name).first()
+        s = Student(first_name=first_name, 
+                    last_name=last_name,
+                    degree_id=degree.id, 
+                    major_id=major.id,
                     username=username)
-        s.set_password('studybuddy123')
+        s.set_password('buddy123')
         db.session.add(s)
         db.session.flush()
         return s
 
-    noah_sweatte = student(first_name='Noah', last_name='Sweatte', degree_id=1, major_id=1, username='noah_sweatte')
-    mason_hoggard = student(first_name='Mason', last_name='Hoggard', degree_id=1, major_id=1, username='mason_hoggard')
-    john_hills = student(first_name='John', last_name='Hills', degree_id=2, major_id=2, username='john_hills')
-    josie_andrews = student(first_name='Josie', last_name='Andrews', degree_id=1, major_id=5, username="josie_andrews")
+    noah_sweatte = student('Noah', 'Sweatte', 'Bachelor of Science', 'Software Engineering', 'noah_sweatte')
+    mason_hoggard = student('Mason', 'Hoggard', 'Bachelor of Arts', 'Information Technology', 'mason_hoggard')
+    josie_andrews = student('Josie', 'Andrews', 'Bachelor of Science', 'Accounting', 'josie_andrews')
 
     db.session.commit()
 
-    def searching_buddy(student_row, course_dept, course_code):
-        course = Course.query.filter_by(department=course_dept, code=course_code).first()
+    def searching_buddy(student_row, department, code):
+        course = Course.query.filter_by(department=department, code=code).first()
         if not course:
-            return
-        existing = BuddyRequest.query.filter_by(student_id=student_row.id, course_id=course.id).first()
-        if existing:
             return
         db.session.add(BuddyRequest(student_id=student_row.id, course_id=course.id))
 
     searching_buddy(noah_sweatte, 'CSCI', '1010')
-    searching_buddy(mason_hoggard, 'CSCI', '1010')
-    searching_buddy(john_hills, 'MATH', '2121')
+    searching_buddy(mason_hoggard, 'CSCI', '2400')
     searching_buddy(josie_andrews, 'COMM', '2020')
-    db.session.commit()
 
 with app.app_context():
     db.create_all()

@@ -4,6 +4,7 @@ $(function () {
         var $department = $row.find('#course_department');
         var $code = $row.find('#course_code');
         var $name = $row.find('#course_name');
+        var $courseId = $row.find('#course_id');
 
         function optionsHtml(placeholder, items, labelKey) {
             var html = '<option value="">' + placeholder + '</option>';
@@ -21,21 +22,15 @@ $(function () {
             $row.trigger('coursepicker:change', [courseId || '']);
         }
 
-        function syncTo($other) {
-            return function () {
-                var courseId = $(this).val();
-                $row.find('#course_id').val(courseId || '');
-                if ($other.length) {
-                    $other.val(courseId);
-                }
-                $('#find-buddy-submit').prop('disabled', !courseId);
-                notifyChange(courseId);
-            };
+        function updateSelectedCourse(courseId) {
+            $courseId.val(courseId || '');
+            $('#find-buddy-submit').prop('disabled', !courseId);
+            notifyChange(courseId || '');
         }
 
         $department.on('change', function () {
             var department = $(this).val();
-            $row.find('#course_id').val('');
+            $courseId.val('');
             $('#find-buddy-submit').prop('disabled', true);
             resetSelect($code, 'Code...');
             resetSelect($name, 'Name...');
@@ -48,7 +43,16 @@ $(function () {
             });
         });
 
-        $code.on('change', syncTo($name));
-        $name.on('change', syncTo($code));
+        $code.on('change', function () {
+            var courseId = $(this).val();
+            $name.val(courseId || '');
+            updateSelectedCourse(courseId);
+        });
+
+        $name.on('change', function () {
+            var courseId = $(this).val();
+            $code.val(courseId || '');
+            updateSelectedCourse(courseId);
+        });
     });
-});\
+});

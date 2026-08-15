@@ -233,3 +233,43 @@ p {
   text-shadow: 0 0 1px #7400aa;
   transition: transform .5s ease;
 }
+
+
+.candidate-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .6rem;
+  padding: .4rem 0;
+}
+
+/* ---------- Table ---------- */
+.table {
+  border-collapse: collapse;
+}
+
+.table,
+.table thead,
+.table thead tr,
+.table thead th {
+  border-top: none !important;
+  border-collapse: collapse;
+}
+
+thead {
+  color: white;
+}
+
+thead tr {
+  border-top: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+tbody tr:nth-child(even) {
+  background-color: #d5d4d4; /* White */
+}
+
+/* Style odd rows inside the table body only */
+tbody tr:nth-child(odd) {
+  background-color: #ffffff; /* Light gray */
+}

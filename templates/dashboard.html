@@ -32,7 +32,7 @@
             <td><strong>{{ buddy.first_name }} {{ buddy.last_name }}</strong></td>
             <td>{{ match.course.department }}{{ match.course.code }}</td>
             <td class="table-actions">
-              <form method="POST" action="{{ url_for('delete_buddy', match_id=match.id) }}">
+              <form method="POST" action="{{ url_for('cancel_buddy_request', match_id=match.id) }}">
                 <button type="submit" class="btn btn-danger">Delete</button>
               </form>
             </td>
