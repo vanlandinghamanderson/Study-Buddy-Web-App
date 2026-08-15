@@ -15,33 +15,35 @@
       Your Buddies
       <span class="toggle-arrow">▾</span>
     </h3>
-      <div class="collapsible-content" id="buddies-content">
-        {% if matches %}
-        <table class="table">
-          <thead>
-            <tr>Name</tr>
-            <tr>Course</tr>
-            <tr>Action</tr>
-          </thead>
-          <tbody>
-            {% for match in matches %}
-            {% set buddy = match.student_b if match.student_a_id == student.id else match.student_a %}
-            <tr>
-              <td><strong>{{ buddy.first_name }} {{ buddy.last_name }}</strong></td>
-              <td>{{ match.course.dept }}{{ match.course.code }}</td>
-              <td class="table-actions">
-                <form method="POST" action="{{ url_for('delete_buddy', match_id=match.id) }}">
-                  <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <p class="empty-message">You don't have any buddies on your list...</p>
+    <div class="collapsible-content" id="buddies-content">
+      {% if matches %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for match in matches %}
+          {% set buddy = match.student_b if match.student_a_id == student.id else match.student_a %}
+          <tr>
+            <td><strong>{{ buddy.first_name }} {{ buddy.last_name }}</strong></td>
+            <td>{{ match.course.department }}{{ match.course.code }}</td>
+            <td class="table-actions">
+              <form method="POST" action="{{ url_for('delete_buddy', match_id=match.id) }}">
+                <button type="submit" class="btn btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="empty-message">You don't have any buddies on your list...</p>
       {% endif %}
-    </h3>
+    </div>
   </div>
 
   <div class="card">
@@ -49,7 +51,7 @@
       Your Groups
       <span class="toggle-arrow">▾</span>
     </h3>
-    <div class="collapsible-content" id="group-content">
+    <div class="collapsible-content" id="groups-content">
       {% if groups %}
       <table class="table">
         <thead>
@@ -62,7 +64,7 @@
         <tbody>
           {% for group in groups %}
           <tr{% if group.is_full %} class="table-active"{% endif %}>
-            <td><strong>{{ group.course.dept }}{{ group.course.code }}{{ group.course.name }}</strong></td>
+            <td><strong>{{ group.course.department }}{{ group.course.code }} {{ group.course.name }}</strong></td>
             <td>{{ group.members | map(attribute='student.first_name, student.last_name') | join(', ') }}</td>
             <td class="table-actions">
               <form method="POST" action="{{ url_for('leave_group', group_id=group.id) }}">
@@ -79,4 +81,8 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

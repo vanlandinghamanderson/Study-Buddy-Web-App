@@ -1,7 +1,55 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="card form-card">
-  <h2>Find Your Buddy</h2>
+<h1>Find Your Buddy</h1>
+<p class="hint">Please select a course to find a buddy to work with.</p>
+
+<form id="form-buddy-form" method="POST" action="{{ url_for('find_buddies') }}">
+  <div class="form-group">
+    <label>Course: </label>
+    <div class="course-picker-row">
+      <select id="course_department" name="course_department" required>
+        <option value="">Select a Department...</option>
+        {% for subject in subjects %}
+        <option value="{{ subject }}">{{ subject }}</option>
+        {% endfor %}
+      </select>
+      <select id="course_code" required disabled>
+        <option value="">Select a Code...</option>
+      </select>
+      <select id="course_name" required disabled>
+        <option value="">Select a Name...</option>
+      </select>
+      <input type="hidden" id="course_id" name="course_id" value="">
+    </div>
+  </div>
+  <button type="submit" class="submit-button" id="find-buddy-submit" disabled>Submit</button>
+</form>
+
+{% if error %}
+<p class="error-msg">{{ error }}</p>
+{% endif %}
+
+{% if candidates is not none %}
+<div id="course-buddies" class="buddies">
+  {% if candidates %}
+    {% for buddy in candidates %}
+    <div class="buddy-row">
+      <span>{{ buddy.first_name }} {{ buddy.last_name }}</span>
+      <form method="POST" action="{{ url_for('match_buddy_request', request_id=buddy.request_id) }}">
+        <button type="submit" class="submit-buddy">Match With Your Buddy</button>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p>The buddy you're looking for is not available...</p>
+  {% endif %}
 </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/course_picker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/find_buddies.js')}}"></script>
 {% endblock %}

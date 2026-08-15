@@ -19,17 +19,38 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-GROUP_SIZE = 4
+GROUP_SIZE = 5
 
 # ---------- MODELS ---------- #
 
+# Degree Model
+class Degree(db.Model):
+    __tablename__ = 'degree'
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(50), nullable=False)
+
+# Major Model
+class Major(db.Model):
+    __tablename__ = 'major'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+
+# Course Model
+class Course(db.Model):
+    __tablename__ = 'course'
+    id = db.Column(db.Integer, primary_key=True)
+    department = db.Column(db.String(100), nullable=False)
+    code = db.Column(db.String(20), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+
+# Student Model
 class Student(db.Model):
-    __tablename__ = 'students'
+    __tablename__ = 'student'
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
-    degree_id = db.Column(db.Integer, db.ForeignKey('degrees.id'), nullable=False)
-    major_id = db.Column(db.Integer, db.ForeignKey('majors.id'), nullable=False)
+    degree_id = db.Column(db.Integer, db.ForeignKey('degree.id'), nullable=False)
+    major_id = db.Column(db.Integer, db.ForeignKey('major.id'), nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
 
@@ -42,68 +63,57 @@ class Student(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-class Degree(db.Model):
-    __tablename__ = 'degrees'
-    id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(50), nullable=False)
-
-class Major(db.Model):
-    __tablename__ = 'majors'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-
-
-class Course(db.Model):
-    __tablename__ = 'courses'
-    id = db.Column(db.Integer, primary_key=True)
-    dept = db.Column(db.String(100), nullable=False)
-    code = db.Column(db.String(20), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-
+# Buddy Request Model
 class BuddyRequest(db.Model):
-    """A student waiting to be paired with a buddy for a shared course."""
-    __tablename__ = 'buddy_requests'
+    __tablename__ = 'buddy_request'
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     status = db.Column(db.String(10), default='waiting')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     student = db.relationship('Student')
     course = db.relationship('Course')
 
+# Buddy Match Model
 class BuddyMatch(db.Model):
-    """A confirmed 1:! buddy pairing for a shared course"""
-    __tablename__ = 'buddy_matches'
+    """ A confirmed 1:1 buddy pairing for a course. """
+    __tablename__ = 'buddy_match'
     id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
-    student_a_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
-    student_b_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    student_a_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    student_b_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     course = db.relationship('Course')
     student_a = db.relationship('Student', foreign_keys=[student_a_id])
     student_b = db.relationship('Student', foreign_keys=[student_b_id])
 
+# Group Model
+# Example: Whenever a student select a course [course.id]
+# Groups to join
 class Group(db.Model):
-    """A student group. Needs GROUP_SIZE to be at least 5 members"""
-    __tablename__ = 'groups'
+    __tablename__ = 'group'
     id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     is_full = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    courses = db.relationship('Course')
-    members = db.relationship('GroupMember', backref='group', lazy=True,
-                              order_by='GroupMember.joined_at')
-class GroupMember(db.Model):
-    __tablename__ = 'group_members'
-    id = db.Column(db.Integer, primary_key=True)
-    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
-    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    course = db.relationship('Course')
+    members = db.relationship('GroupMember', backref='group', lazy=True)
 
-    student = db.relationship('Student')
+    # what does that mean?
+    # 
+    @property
+    def member_count(self):
+        return len(self.members)
+
+# Group Member Model
+class GroupMember(db.Model):
+    __tablename__ = 'group_member'
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
 
 # ----------- Auth Helpers ----------#
 def login_required(f):
@@ -122,7 +132,7 @@ def current_student():
 def student_buddy_matches(student_id):
     return (BuddyMatch.query
             .filter(db.or_(BuddyMatch.student_a_id == student_id,
-                           BuddyMatch.student_b_id == student_id))
+                            BuddyMatch.student_b_id == student_id))
             .order_by(BuddyMatch.created_at.desc())
             .all())
 
@@ -131,7 +141,9 @@ def student_groups(student_id):
             .join(GroupMember)
             .filter(GroupMember.student_id == student_id)
             .order_by(Group.created_at.desc())
-            .all())
+            .all())  
+
+# ---------- Auth Routes ----------
 
 @app.route('/')
 def index():
@@ -213,53 +225,132 @@ def logout():
     session.clear()
     return redirect('/')
 
-# student_id is  
-# all_courses
-@app.route('/find_buddies', methods=['GET', 'POST'])
-def find_buddies():
-    return render_template('find_buddies.html')
+# ---------- Course Picker ---------- #
 
+def course_subjects():
+    return db.session.scalars(
+        db.select(Course.department).distinct().order_by(Course.department)
+    ).all()
+
+@app.route('/course.json')
+@login_required
+def course_json():
+    subject = request.args.get('subject') or request.args.get('department', '')
+    if not subject:
+        return jsonify([])
+    courses = Course.query.filter_by(department=subject).order_by(Course.code).all()
+    return jsonify([{'id': course.id, 'code': course.code, 'name': course.name} for course in courses])
+
+# ---------- Finding a Group ---------- #
 @app.route('/find_groups')
-def find_groups():    
+@login_required
+def find_groups():
     return render_template('find_groups.html')
 
-
-# ----------  Delete Your Buddy from the Dashboard ---------- #
-@app.route('/buddy/<int:match_id>/end', methods=['POST'])
+# ---------- Finding a Buddy ---------- #
+@app.route('/find_buddies', methods=['GET', 'POST'])
 @login_required
-def delete_buddy(match_id):
+def find_buddies():
+    subjects = course_subjects()
+    error = request.args.get('error')
+    candidates = None
+
+    if request.method == 'POST':
+        course_id = request.form.get('course_id', type=int)
+        if not course_id:
+            error = 'Please select a course...'
+        else:
+            student = current_student()
+            waiting = (BuddyRequest.query
+                       .filter_by(course_id=course_id, status='waiting')
+                       .filter(BuddyRequest.student_id != student.id)
+                       .order_by(BuddyRequest.created_at.asc())
+                       .all())
+            candidates = []
+            for buddies in waiting:
+                candidates.append({'request_id': buddies.id,
+                                   'first_name': buddies.student.first_name,
+                                   'last_name': buddies.student.last_name})
+
+    return render_template('find_buddies.html', subjects=subjects,
+                           candidates=candidates, error=error)
+
+# Matches with the current student who is taking the same course
+@app.route('/buddy-request/<int:request_id>/match', methods=['POST'])
+@login_required
+def match_buddy_request(request_id):
     student = current_student()
-    match = db.session.get(BuddyMatch, match_id)
-    if match and student.id in (match.student_a_id, match.student_b_id):
-        db.session.delete(match)
-        db.session.commit()
+    waiting = db.session.get(BuddyRequest, request_id)
+    if not waiting or waiting.status != 'waiting':
+        return redirect(url_for('find_buddies', error='That student is not takimg the course'))
+    if waiting.student_id == student.id:
+        return redirect(url_for('find_a_budies'), error='You cannot match with yourself...')
+
+    already_matched = BuddyMatch.query.filter(
+        db.or_(BuddyMatch.student_a_id == student.id, BuddyMatch.student_b_id == student.id),
+        BuddyMatch.course_id == waiting.course_id).first()
+    
+    if already_matched:
+        return redirect(url_for('find_a_buddy_page'), error='You already matched this student!')
+
+    waiting.status = 'matched'
+    db.session.add(BuddyMatch(course_id = waiting.course_id, student_a_id=student.id,
+                              student_b_id=waiting.student_id))
+    db.session.commit()
     return redirect(url_for('dashboard'))
 
-# ---------- Leave Your Group from the Dashboard ---------- #
-@app.route('/group/<int:group_id>/leave', methods=['POST'])
+@app.route('/find-buddy/cancel', methods=['POST'])
 @login_required
-def leave_group(group_id):
+def cancel_buddy_request():
     student = current_student()
-    group_member = GroupMember.query.filter_by(group_id=group_id, student_id=student.id).first()
-    if group_member:
-        group = db.session.get(Group, group_id)
-        db.session.delete(group_member)
-        # Check if the group is now empty
-        if group and group.is_full:
-            group.is_full = False
+    request = BuddyRequest.query.filter_by(student_id=student.id, status='waiting').first()
+    if request:
+        db.session.delete(request)
         db.session.commit()
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('findin'))
 
 # ---------- Seed Example Data ---------- #
-def seed_students():
-    if Student.query.count() == 0:
-        return
 
-    def student(first_name, last_name, degree_type, major_name, username):
-        degree = Degree.query.filter_by(type=degree_type).first()
-        major = Major.query.filter_by(name=major_name).first()
+def seed_degrees():
+    if Degree.query.first():
+        return
+    types = ['Bachelor of Arts', 'Bachelor of Science']
+    for type in types:
+        db.session.add(Degree(type=type))
+    db.session.commit()
+
+def seed_majors():
+    if Major.query.first():
+        return
+    names = ['Computer Science', 'Accounting', 'Software Engineering', 'Information Technology', 'Information and Cybersecurity Technology']
+    for name in names:
+        db.session.add(Major(name=name))
+    db.session.commit()
+
+def seed_courses():
+    if Course.query.first():
+        return
+    courses = [
+        ('CSCI', '1010', 'Algortihm Problem Solving'),
+        ('CSCI', '2400', 'Discrete Structures I'),
+        ('CSCI', '3675', 'Principles of Programming Languages'),
+        ('CSCI', '4602', 'Automata, Computability and Complexity'),
+        ('MATH', '2121', 'Calculus for Life Sciences'),
+        ('MATH', '2228', 'Elementary Statistics'),
+        ('GEOL', '1500', 'Dynamic Earth'),
+        ('COMM', '2020', 'Fundamentals of Communication Speech'),
+    ]
+    for department, code, name in courses:
+        db.session.add(Course(department=department, code=code, name=name))
+    db.session.commit()
+
+def seed_students():
+    def student(first_name, last_name, degree_id, major_id, username):
+        s = Student.query.filter_by(username=username).first()
+        if s:
+            return s
         s = Student(first_name=first_name, last_name=last_name,
-                    degree_id=degree.id, major_id=major.id,
+                    degree_id=degree_id, major_id=major_id,
                     username=username)
         s.set_password('studybuddy123')
         db.session.add(s)
@@ -269,39 +360,30 @@ def seed_students():
     noah_sweatte = student(first_name='Noah', last_name='Sweatte', degree_id=1, major_id=1, username='noah_sweatte')
     mason_hoggard = student(first_name='Mason', last_name='Hoggard', degree_id=1, major_id=1, username='mason_hoggard')
     john_hills = student(first_name='John', last_name='Hills', degree_id=2, major_id=2, username='john_hills')
-    andrew_smith = student(first_name='Andrew', last_name='Smith', degree_id=2, major_id=2, username='andrew_smith')
-    edward_hendron = student(first_name='Edward', last_name='Hendron', degree_id=1, major_id=3, username='edward_hendron')
-
-    mia_jones = student(first_name='Mia', last_name='Jones', degree_id=1, major_id=3, username='mia_ding')
-    emma_jones = student(first_name='Emma', last_name='Jones', degree_id=2, major_id=4, username="emma_jones")
-    haley_wells =  student(first_name='Haley', last_name='Wells', degree_id=2, major_id=4, username="haley_wells")
-    samantha_baker = student(first_name='Samantha', last_name='Baker', degree_id=1, major_id=5, username="samantha_baker")
     josie_andrews = student(first_name='Josie', last_name='Andrews', degree_id=1, major_id=5, username="josie_andrews")
 
     db.session.commit()
 
     def searching_buddy(student_row, course_dept, course_code):
-        course = Course.query.filter_by(dept=course_dept, code=course_code).first()
+        course = Course.query.filter_by(department=course_dept, code=course_code).first()
+        if not course:
+            return
+        existing = BuddyRequest.query.filter_by(student_id=student_row.id, course_id=course.id).first()
+        if existing:
+            return
         db.session.add(BuddyRequest(student_id=student_row.id, course_id=course.id))
 
     searching_buddy(noah_sweatte, 'CSCI', '1010')
     searching_buddy(mason_hoggard, 'CSCI', '1010')
     searching_buddy(john_hills, 'MATH', '2121')
     searching_buddy(josie_andrews, 'COMM', '2020')
-
-    def searching_group(course_dept, course_code, members):
-        course = Course.query.filter_by(dept=course_dept, code=course_code).first()
-        group = Group(course_id=course.id)
-        db.session.add(group)
-        db.session.flush()  # Flush to get the group ID
-        for member in members:
-            db.session.add(GroupMember(group_id=group.id, student_id=member.id))
-
-    searching_group('CSCI', '2400', [mia_jones, emma_jones, haley_wells])
-    searching_group('MATH', '2228', [edward_hendron, andrew_smith, samantha_baker])
+    db.session.commit()
 
 with app.app_context():
     db.create_all()
+    seed_degrees()
+    seed_majors()
+    seed_courses()
     seed_students()
 
 if __name__ == '__main__':

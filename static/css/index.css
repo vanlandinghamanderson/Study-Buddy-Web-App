@@ -187,6 +187,49 @@ html, body {
   cursor: pointer;
 }
 
+.collapsible-header.collapsed .toggle-arrow {
+  transform: rotate(-90deg);
+}
+
 .collapsible-content {
   margin-top: 1rem;
+}
+
+.collapsible-content.collapsed {
+  display: none;
+}
+
+p {
+  color: white;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* ---------- Option Value --------- */
+
+.course-picker-row {
+  display: flex;
+  gap: 2rem;
+}
+
+/* ---------- Submit Button ---------- */
+
+.submit-button {
+  background-color: #7400aa;
+  border: none;
+  padding: 10px 40px;
+  border-radius: .75rem;
+  color: white;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.submit-button:hover {
+  background-color: white;
+  color: #7400aa;
+  transform: scale(1.25);
+  box-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff;
+  font-weight: 500;
+  text-shadow: 0 0 1px #7400aa;
+  transition: transform .5s ease;
 }
