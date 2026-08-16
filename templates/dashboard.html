@@ -65,7 +65,11 @@
           {% for group in groups %}
           <tr{% if group.is_full %} class="table-active"{% endif %}>
             <td><strong>{{ group.course.department }}{{ group.course.code }} {{ group.course.name }}</strong></td>
-            <td>{{ group.members | map(attribute='student.first_name, student.last_name') | join(', ') }}</td>
+            <td>
+              {% for member in group.members %}
+                {{ member.student.first_name }} {{ member.student.last_name }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </td>
             <td class="table-actions">
               <form method="POST" action="{{ url_for('leave_group', group_id=group.id) }}" class="confirm-form" data-confirm-text="Are you sure you want to leave this group?">
                 <button type="submit" class="btn btn-danger">Leave</button>

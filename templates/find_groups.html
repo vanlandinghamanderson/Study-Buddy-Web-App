@@ -1,6 +1,54 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="dashboard-container">
-    <h1>Find Your Group...</h1>
+<h1>Find Your Groups</h1>
+<p class="hint">Please select a course to find a buddy to work with.</p>
+
+<form id="form-buddy-form" method="POST" action="{{ url_for('find_groups') }}">
+  <div class="form-group">
+    <label>Course: </label>
+    <div class="course-picker-row">
+      <select id="course_department" name="course_department" required>
+        <option value="">Select a Department...</option>
+        {% for subject in subjects %}
+        <option value="{{ subject }}">{{ subject }}</option>
+        {% endfor %}
+      </select>
+      <select id="course_code" required disabled>
+        <option value="">Select a Code...</option>
+      </select>
+      <select id="course_name" required disabled>
+        <option value="">Select a Name...</option>
+      </select>
+      <input type="hidden" id="course_id" name="course_id" value="">
+    </div>
+  </div>
+  <button type="submit" class="submit-button" id="find-group-submit" disabled>Submit</button>
+</form>
+
+{% if error %}
+<p class="error-msg">{{ error }}</p>
+{% endif %}
+
+{% if groups is not none %}
+<div id="display-list" class="groups">
+    {% if groups %}
+    {% for group in groups %}
+    <div class="candidate-row">
+        <span>{{ group.member_count }}/5 - {{ group.members }}</span>
+        <form method="POST" action="{{ url_for('join_specific_group', group_id=group.group_id) }}">
+            <button type="submit" class="join-a-group">Join This Group</button>
+        </form>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>No groups yet available for this course. Try forming one instead.</p>
+    {% endif %}
 </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/course_picker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/find_groups.js') }}"></script>
 {% endblock %}

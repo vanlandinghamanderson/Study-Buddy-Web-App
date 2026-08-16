@@ -123,6 +123,8 @@ class GroupMember(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
 
+    student = db.relationship('Student')
+
 # ----------- Auth Helpers ----------#
 def login_required(f):
     @wraps(f)
@@ -258,12 +260,6 @@ def course_json():
     courses = Course.query.filter_by(department=subject).order_by(Course.code).all()
     return jsonify([{'id': course.id, 'code': course.code, 'name': course.name} for course in courses])
 
-# ---------- Finding a Group ---------- #
-@app.route('/find_groups')
-@login_required
-def find_groups():
-    return render_template('find_groups.html')
-
 # ---------- Finding a Buddy ---------- #
 @app.route('/find_buddies', methods=['GET', 'POST'])
 @login_required
@@ -335,6 +331,61 @@ def delete_buddy_match(match_id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
+# ---------- GROUP SECTION ---------- #
+@app.route('/find_groups', methods=['GET', 'POST'])
+@login_required
+def find_groups():
+    subjects = course_subjects()
+    error = request.args.get('error')
+    groups = None
+
+    if request.method == 'POST':
+        course_id = request.form.get('course_id', type=int)
+        if not course_id:
+            error = 'Please select a course...'
+        else:
+            open_groups = (Group.query
+                           .filter_by(course_id=course_id, is_full=False)
+                           .order_by(Group.created_at.asc())
+                           .all())
+            groups = [{
+                'group_id': group.id,
+                'member_count': group.member_count,
+                'members': ', '.join(
+                    f"{member.student.first_name} {member.student.last_name}"
+                    for member in group.members
+                )
+            } for group in open_groups]
+
+    return render_template('find_groups.html', subjects=subjects,
+                           groups=groups, error=error)
+
+@app.route('/group/<int:group_id>/join', methods=['POST'])
+@login_required
+def join_specific_group(group_id):
+    student = current_student()
+    group = db.session.get(Group, group_id)
+    if not group:
+        return redirect(url_for('find_groups', error='That group does not exist.'))
+
+    already_in = (Group.query.join(GroupMember)
+                  .filter(Group.course_id == group.course_id, GroupMember.student_id == student.id)
+                  .first())
+
+    if already_in:
+        return redirect(url_for('find_groups', error='You are already in this group!'))
+
+    if group.is_full or group.member_count >= GROUP_SIZE:
+        return redirect(url_for('find_groups', error='Group is already full'))
+
+    db.session.add(GroupMember(group_id=group.id, student_id=student.id))
+    db.session.flush()
+
+    if group.member_count >= GROUP_SIZE:
+        group.is_full = True
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+
 @app.route('/group/<int:group_id>/leave', methods=['POST'])
 @login_required
 def leave_group(group_id):
@@ -364,8 +415,6 @@ def seed_majors():
     db.session.commit()
 
 def seed_courses():
-    if Course.query.first():
-        return
     courses = [
         ('CSCI', '1010', 'Algortihm Problem Solving'),
         ('CSCI', '2400', 'Discrete Structures I'),
@@ -375,8 +424,12 @@ def seed_courses():
         ('MATH', '2228', 'Elementary Statistics'),
         ('GEOL', '1500', 'Dynamic Earth'),
         ('COMM', '2020', 'Fundamentals of Communication Speech'),
+        ('PHIL', '2275', 'Professional Ethics'),
     ]
     for department, code, name in courses:
+        existing = Course.query.filter_by(department=department, code=code).first()
+        if existing:
+            continue
         db.session.add(Course(department=department, code=code, name=name))
     db.session.commit()
 
@@ -402,6 +455,10 @@ def seed_students():
     josie_andrews = student('Josie', 'Andrews', 'Bachelor of Science', 'Accounting', 'josie_andrews')
     taylor_wells = student('Taylor', 'Wells', 'Bachelor of Science', 'Computer Science', 'taylor_wells')
 
+    antonino_baker = student('Antonio', 'Baker', 'Bachelor of Science', 'Computer Science', 'antonio_baker')
+    sue_anderson = student('Sue', 'Anderson', 'Bachelor of Science', 'Information and Cybersecurity Technology', 'sue_anderson')
+
+
     db.session.commit()
 
     def searching_buddy(student_row, department, code):
@@ -419,6 +476,22 @@ def seed_students():
 
     db.session.commit()
 
+    def groups(department, code, members):
+        course = Course.query.filter_by(department=department, code=code).first()
+        if not course:
+            return
+        existing_group = Group.query.filter_by(course_id=course.id).first()
+        if existing_group:
+            return
+        group = Group(course_id=course.id)
+        db.session.add(group)
+        db.session.flush()
+        for member in members:
+            if not GroupMember.query.filter_by(group_id=group.id, student_id=member.id).first():
+                db.session.add(GroupMember(group_id=group.id, student_id=member.id))
+        db.session.commit()
+
+    groups('CSCI', '4602', [antonino_baker, sue_anderson])
 
 with app.app_context():
     db.create_all()

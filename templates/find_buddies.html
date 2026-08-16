@@ -4,7 +4,7 @@
 <h1>Find Your Buddy</h1>
 <p class="hint">Please select a course to find a buddy to work with.</p>
 
-<form id="form-buddy-form" method="POST" action="{{ url_for('find_buddies') }}">
+<form id="course-form" method="POST" action="{{ url_for('find_buddies') }}">
   <div class="form-group">
     <label>Course: </label>
     <div class="course-picker-row">
@@ -31,7 +31,7 @@
 {% endif %}
 
 {% if candidates is not none %}
-<div id="course-buddies" class="buddies">
+<div id="display-list" class="buddies">
   {% if candidates %}
     {% for buddy in candidates %}
     <div class="candidate-row">
