@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Form Your Group</h1>
+<p class="hint">Please select a course to form your group.</p>
+
+<form id="course-form" method="POST" action="{{ url_for('form_groups') }}">
+  <div class="form-group">
+    <label>Course: </label>
+    <div class="course-picker-row">
+      <select id="course_department" name="course_department" required>
+        <option value="">Select a Department...</option>
+        {% for subject in subjects %}
+        <option value="{{ subject }}">{{ subject }}</option>
+        {% endfor %}
+      </select>
+      <select id="course_code" required disabled>
+        <option value="">Select a Code...</option>
+      </select>
+      <select id="course_name" required disabled>
+        <option value="">Select a Name...</option>
+      </select>
+      <input type="hidden" id="course_id" name="course_id" value="">
+    </div>
+  </div>
+  <button type="submit" class="submit-button" id="form-group-submit" disabled>Submit</button>
+</form>
+
+{% if error %}
+<p class="error-msg">{{ error }}</p>
+{% endif %}
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/course_picker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/form_group.js') }}"></script>
+{% endblock %}

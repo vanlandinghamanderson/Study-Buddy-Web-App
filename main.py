@@ -396,6 +396,35 @@ def leave_group(group_id):
         db.session.commit()
     return redirect(url_for('dashboard'))
 
+# ---------- FORMING GROUPS SECTION ---------- #
+@app.route('/form_groups')
+@login_required
+def form_groups():
+    subjects = course_subjects()
+    return render_template('form_groups.html', subjects=subjects)
+
+@app.route('/form_groups', methods=['POST', 'GET'])
+@login_required
+def creating_groups():
+    student = current_student()
+    course_id = request.form.get('course_id', type=int)
+    course = db.session.get(Course, course_id)
+    if not course:
+        return redirect(url_for('form_groups', error='Please select a valid course.'))
+
+    already_in = (Group.query.join(GroupMember)
+                  .filter(Group.course_id == course_id, GroupMember.student_id == student.id)
+                  .first())
+    if already_in:
+        return redirect(url_for('form_groups', error=f'You are already in a group'))
+
+    new_group = Group(course_id=course_id)
+    db.session.add(new_group)
+    db.session.flush()
+    db.session.add(GroupMember(group_id=new_group.id, student_id=student.id))
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+
 # ---------- Seed Example Data ---------- #
 
 def seed_degrees():
