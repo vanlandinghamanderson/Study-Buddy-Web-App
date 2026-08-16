@@ -205,6 +205,11 @@ p {
   margin-bottom: 1rem;
 }
 
+#course-buddies {
+  margin-top: 2rem;
+  color: white;
+}
+
 /* ---------- Option Value --------- */
 
 .course-picker-row {
@@ -272,4 +277,65 @@ tbody tr:nth-child(even) {
 /* Style odd rows inside the table body only */
 tbody tr:nth-child(odd) {
   background-color: #ffffff; /* Light gray */
+}
+
+/* ---------- Find a Buddy ---------- */
+
+.submit-buddy {
+  color: white;
+  background-color: #7400aa;
+  border-radius: .75rem;
+  border: none;
+  padding: 10px 20px;
+}
+
+/* ---------- Modal Overlay ---------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-box {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: .75rem;
+  padding: 1rem 1rem;
+  margin-bottom: 1.5rem;
+  max-width: 480px;
+  width: 90%;
+  pointer-events: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn-row {
+  display: flex;
+  gap: .6rem;
+}
+
+.yes-button, .no-button {
+  padding: .1rem .4rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  color: white;
+}
+
+.yes-button {
+  background-color: green;
+}
+
+.no-button {
+  background-color: red;
 }

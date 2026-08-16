@@ -32,7 +32,7 @@
             <td><strong>{{ buddy.first_name }} {{ buddy.last_name }}</strong></td>
             <td>{{ match.course.department }}{{ match.course.code }}</td>
             <td class="table-actions">
-              <form method="POST" action="{{ url_for('cancel_buddy_request', match_id=match.id) }}">
+              <form method="POST" action="{{ url_for('delete_buddy_match', match_id=match.id) }}" class="confirm-form" data-confirm-text="Are you sure you want to delete this buddy from your list?">
                 <button type="submit" class="btn btn-danger">Delete</button>
               </form>
             </td>
@@ -67,7 +67,7 @@
             <td><strong>{{ group.course.department }}{{ group.course.code }} {{ group.course.name }}</strong></td>
             <td>{{ group.members | map(attribute='student.first_name, student.last_name') | join(', ') }}</td>
             <td class="table-actions">
-              <form method="POST" action="{{ url_for('leave_group', group_id=group.id) }}">
+              <form method="POST" action="{{ url_for('leave_group', group_id=group.id) }}" class="confirm-form" data-confirm-text="Are you sure you want to leave this group?">
                 <button type="submit" class="btn btn-danger">Leave</button>
               </form>
             </td>
@@ -78,6 +78,16 @@
       {% else %}
         <p class="empty-message">You don't have any groups on your list...</p>
       {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box">
+    <span id="confirm-modal-text">Are you sure you want to delete this buddy from your list?</span>
+    <div class="btn-row">
+      <button type="button" class="yes-button" id="confirm-modal-yes">Yes</button>
+      <button type="button" class="no-button" id="confirm-modal-no">No</button>
     </div>
   </div>
 </div>

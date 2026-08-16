@@ -16,8 +16,16 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///study_buddy.db')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 db = SQLAlchemy(app)
+
+@app.after_request
+def disable_cache(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 GROUP_SIZE = 5
 
@@ -130,11 +138,20 @@ def current_student():
     return None
 
 def student_buddy_matches(student_id):
-    return (BuddyMatch.query
+    matches = (BuddyMatch.query
             .filter(db.or_(BuddyMatch.student_a_id == student_id,
                             BuddyMatch.student_b_id == student_id))
             .order_by(BuddyMatch.created_at.desc())
             .all())
+    seen = set()
+    unique_matches = []
+    for match in matches:
+        key = (match.course_id, tuple(sorted((match.student_a_id, match.student_b_id))))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_matches.append(match)
+    return unique_matches
 
 def student_groups(student_id):
     return (Group.query
@@ -288,26 +305,43 @@ def match_buddy_request(request_id):
     course = waiting.course
 
     already_matched = BuddyMatch.query.filter(
-        db.or_(BuddyMatch.student_a_id == student.id, BuddyMatch.student_b_id == student.id),
-        BuddyMatch.course_id == waiting.course_id
+        BuddyMatch.course_id == waiting.course_id,
+        db.or_(
+            db.and_(BuddyMatch.student_a_id == student.id, BuddyMatch.student_b_id == waiting.student_id),
+            db.and_(BuddyMatch.student_a_id == waiting.student_id, BuddyMatch.student_b_id == student.id)
+        )
     ).first()
-    
+
     if already_matched:
-        return redirect(url_for('find_buddies'), error='You already matched this student!')
+        return redirect(url_for('find_buddies', error='You already matched this student!'))
 
     waiting.status = 'matched'
-    db.session.add(BuddyMatch(course_id = waiting.course_id, student_a_id=student.id,
+    db.session.add(BuddyMatch(course_id=waiting.course_id, student_a_id=student.id,
                               student_b_id=waiting.student_id))
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-@app.route('/find-buddy/cancel', methods=['POST'])
+@app.route('/buddy-match/<int:match_id>/delete', methods=['POST'])
 @login_required
-def cancel_buddy_request():
+def delete_buddy_match(match_id):
     student = current_student()
-    request = BuddyRequest.query.filter_by(student_id=student.id, status='waiting').first()
-    if request:
-        db.session.delete(request)
+    match = db.session.get(BuddyMatch, match_id)
+    if not match:
+        return redirect(url_for('dashboard'))
+    if match.student_a_id != student.id and match.student_b_id != student.id:
+        return redirect(url_for('dashboard'))
+
+    db.session.delete(match)
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+
+@app.route('/group/<int:group_id>/leave', methods=['POST'])
+@login_required
+def leave_group(group_id):
+    student = current_student()
+    membership = GroupMember.query.filter_by(group_id=group_id, student_id=student.id).first()
+    if membership:
+        db.session.delete(membership)
         db.session.commit()
     return redirect(url_for('dashboard'))
 
@@ -366,6 +400,7 @@ def seed_students():
     noah_sweatte = student('Noah', 'Sweatte', 'Bachelor of Science', 'Software Engineering', 'noah_sweatte')
     mason_hoggard = student('Mason', 'Hoggard', 'Bachelor of Arts', 'Information Technology', 'mason_hoggard')
     josie_andrews = student('Josie', 'Andrews', 'Bachelor of Science', 'Accounting', 'josie_andrews')
+    taylor_wells = student('Taylor', 'Wells', 'Bachelor of Science', 'Computer Science', 'taylor_wells')
 
     db.session.commit()
 
@@ -373,11 +408,17 @@ def seed_students():
         course = Course.query.filter_by(department=department, code=code).first()
         if not course:
             return
+        if BuddyRequest.query.filter_by(student_id=student_row.id, course_id=course.id).first():
+            return
         db.session.add(BuddyRequest(student_id=student_row.id, course_id=course.id))
 
     searching_buddy(noah_sweatte, 'CSCI', '1010')
-    searching_buddy(mason_hoggard, 'CSCI', '2400')
+    searching_buddy(mason_hoggard, 'CSCI', '1010')
     searching_buddy(josie_andrews, 'COMM', '2020')
+    searching_buddy(taylor_wells, 'CSCI', '1010')
+
+    db.session.commit()
+
 
 with app.app_context():
     db.create_all()
