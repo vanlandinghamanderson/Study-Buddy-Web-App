@@ -266,6 +266,7 @@ p {
 .table thead th {
   border-top: none !important;
   border-collapse: collapse;
+  color: white;
 }
 
 .table th,

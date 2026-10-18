@@ -58,7 +58,6 @@ def seed_students():
     noah_sweatte = student('Noah', 'Sweatte', 'Bachelor of Science', 'Software Engineering', 'noah_sweatte')
     mason_hoggard = student('Mason', 'Hoggard', 'Bachelor of Arts', 'Information Technology', 'mason_hoggard')
     josie_andrews = student('Josie', 'Andrews', 'Bachelor of Science', 'Accounting', 'josie_andrews')
-    taylor_wells = student('Taylor', 'Wells', 'Bachelor of Science', 'Computer Science', 'taylor_wells')
 
     antonino_baker = student('Antonio', 'Baker', 'Bachelor of Science', 'Computer Science', 'antonio_baker')
     sue_anderson = student('Sue', 'Anderson', 'Bachelor of Science', 'Information and Cybersecurity Technology', 'sue_anderson')
@@ -74,7 +73,7 @@ def seed_students():
     searching_buddy(noah_sweatte, 'CSCI', '1010')
     searching_buddy(mason_hoggard, 'CSCI', '1010')
     searching_buddy(josie_andrews, 'COMM', '2020')
-    searching_buddy(taylor_wells, 'CSCI', '1010')
+    db.session.commit()
 
     def groups(department, code, members):
         course = Course.query.filter_by(department=department, code=code).first()
@@ -95,7 +94,7 @@ def seed_students():
         db.session.commit()
 
     groups('CSCI', '4602', [antonino_baker, sue_anderson])
-    groups('PHIL', '2275', [noah_sweatte, mason_hoggard, antonino_baker, taylor_wells, josie_andrews])
+    groups('PHIL', '2275', [noah_sweatte, mason_hoggard, antonino_baker, josie_andrews])
 
     db.session.commit()
 
