@@ -20,12 +20,6 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 db = SQLAlchemy(app)
 
-@app.after_request
-def disable_cache(response):
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
 
 GROUP_SIZE = 5
 
@@ -487,9 +481,6 @@ def seed_students():
     antonino_baker = student('Antonio', 'Baker', 'Bachelor of Science', 'Computer Science', 'antonio_baker')
     sue_anderson = student('Sue', 'Anderson', 'Bachelor of Science', 'Information and Cybersecurity Technology', 'sue_anderson')
 
-
-    db.session.commit()
-
     def searching_buddy(student_row, department, code):
         course = Course.query.filter_by(department=department, code=code).first()
         if not course:
@@ -503,7 +494,6 @@ def seed_students():
     searching_buddy(josie_andrews, 'COMM', '2020')
     searching_buddy(taylor_wells, 'CSCI', '1010')
 
-    db.session.commit()
 
     def groups(department, code, members):
         course = Course.query.filter_by(department=department, code=code).first()
@@ -518,9 +508,13 @@ def seed_students():
         for member in members:
             if not GroupMember.query.filter_by(group_id=group.id, student_id=member.id).first():
                 db.session.add(GroupMember(group_id=group.id, student_id=member.id))
+        # Mark group as full if it has GROUP_SIZE members
+        if len(members) >= GROUP_SIZE:
+            group.is_full = True
         db.session.commit()
 
     groups('CSCI', '4602', [antonino_baker, sue_anderson])
+    groups('PHIL', '2275', [noah_sweatte, mason_hoggard, antonino_baker, taylor_wells, josie_andrews])
 
 with app.app_context():
     db.create_all()

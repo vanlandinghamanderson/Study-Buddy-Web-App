@@ -24,7 +24,9 @@ $(function () {
 
         function updateSelectedCourse(courseId) {
             $courseId.val(courseId || '');
+            // Enable/disable both possible submit buttons
             $('#find-buddy-submit').prop('disabled', !courseId);
+            $('#find-group-submit').prop('disabled', !courseId);
             notifyChange(courseId || '');
         }
 
@@ -32,6 +34,7 @@ $(function () {
             var department = $(this).val();
             $courseId.val('');
             $('#find-buddy-submit').prop('disabled', true);
+            $('#find-group-submit').prop('disabled', true);
             resetSelect($code, 'Code...');
             resetSelect($name, 'Name...');
             notifyChange('');
