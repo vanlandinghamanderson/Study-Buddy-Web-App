@@ -30,6 +30,10 @@
 <p class="error-msg">{{ error }}</p>
 {% endif %}
 
+{% if request_posted %}
+<p class="hint">Your request is posted. Other students searching this course can now find you.</p>
+{% endif %}
+
 {% if candidates is not none %}
 <div id="display-list" class="buddies">
   {% if candidates %}
@@ -43,6 +47,14 @@
     {% endfor %}
   {% else %}
     <p>The buddy you're looking for is not available...</p>
+    {% if own_request %}
+    <p class="hint">Your request is active. Other students searching this course can now find you.</p>
+    {% elif course_id %}
+    <form method="POST" action="{{ url_for('create_buddy_request') }}">
+      <input type="hidden" name="course_id" value="{{ course_id }}">
+      <button type="submit" class="submit-button">Request a Buddy</button>
+    </form>
+    {% endif %}
   {% endif %}
 </div>
 {% endif %}

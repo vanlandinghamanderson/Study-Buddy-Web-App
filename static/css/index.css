@@ -161,6 +161,13 @@ html, body {
   padding: .55rem .65rem;
 }
 
+.toggle-password {
+  display: flex;
+  margin-top: 1rem;
+  background-color: #7400aa;
+  color: white;
+}
+
 .submit-btn {
   width: 100%;
   padding: .55rem .55rem;

@@ -261,6 +261,18 @@ def find_buddies():
     subjects = course_subjects()
     error = request.args.get('error')
     candidates = None
+    course_id = None
+    own_request = None
+    request_posted = False
+
+    requested_course_id = request.args.get('requested', type=int)
+    if requested_course_id:
+        course_id = requested_course_id
+        student = current_student()
+        own_request = BuddyRequest.query.filter_by(
+            student_id=student.id, course_id=requested_course_id, status='waiting'
+        ).first()
+        request_posted = own_request is not None
 
     if request.method == 'POST':
         course_id = request.form.get('course_id', type=int)
@@ -268,6 +280,9 @@ def find_buddies():
             error = 'Please select a course...'
         else:
             student = current_student()
+            own_request = BuddyRequest.query.filter_by(
+                student_id=student.id, course_id=course_id, status='waiting'
+            ).first()
             waiting = (BuddyRequest.query
                        .filter_by(course_id=course_id, status='waiting')
                        .filter(BuddyRequest.student_id != student.id)
@@ -280,7 +295,27 @@ def find_buddies():
                                    'last_name': buddies.student.last_name})
 
     return render_template('find_buddies.html', subjects=subjects,
-                           candidates=candidates, error=error)
+                           candidates=candidates, error=error,
+                           course_id=course_id, own_request=own_request,
+                           request_posted=request_posted)
+
+@app.route('/buddy-request', methods=['POST'])
+@login_required
+def create_buddy_request():
+    student = current_student()
+    course_id = request.form.get('course_id', type=int)
+    course = db.session.get(Course, course_id) if course_id else None
+    if not course:
+        return redirect(url_for('find_buddies', error='Please select a valid course.'))
+
+    existing_request = BuddyRequest.query.filter_by(
+        student_id=student.id, course_id=course.id, status='waiting'
+    ).first()
+    if not existing_request:
+        db.session.add(BuddyRequest(student_id=student.id, course_id=course.id))
+        db.session.commit()
+
+    return redirect(url_for('find_buddies', requested=course.id))
 
 # Matches with the current student who is taking the same course
 @app.route('/buddy-request/<int:request_id>/match', methods=['POST'])
@@ -306,6 +341,11 @@ def match_buddy_request(request_id):
         return redirect(url_for('find_buddies', error='You already matched this student!'))
 
     waiting.status = 'matched'
+    own_request = BuddyRequest.query.filter_by(
+        student_id=student.id, course_id=waiting.course_id, status='waiting'
+    ).first()
+    if own_request:
+        own_request.status = 'matched'
     db.session.add(BuddyMatch(course_id=waiting.course_id, student_a_id=student.id,
                               student_b_id=waiting.student_id))
     db.session.commit()
@@ -386,7 +426,12 @@ def leave_group(group_id):
     student = current_student()
     membership = GroupMember.query.filter_by(group_id=group_id, student_id=student.id).first()
     if membership:
+        group = db.session.get(Group, group_id)
         db.session.delete(membership)
+        db.session.flush()
+        if group:
+            member_count = GroupMember.query.filter_by(group_id=group_id).count()
+            group.is_full = member_count >= GROUP_SIZE
         db.session.commit()
     return redirect(url_for('dashboard'))
 
@@ -395,9 +440,10 @@ def leave_group(group_id):
 @login_required
 def form_groups():
     subjects = course_subjects()
-    return render_template('form_groups.html', subjects=subjects)
+    return render_template('form_groups.html', subjects=subjects,
+                           error=request.args.get('error'))
 
-@app.route('/form_groups', methods=['POST', 'GET'])
+@app.route('/form_groups', methods=['POST'])
 @login_required
 def creating_groups():
     student = current_student()
