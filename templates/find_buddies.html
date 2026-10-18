@@ -23,7 +23,7 @@
       <input type="hidden" id="course_id" name="course_id" value="">
     </div>
   </div>
-  <button type="submit" class="submit-button" id="find-buddy-submit" disabled>Submit</button>
+  <button type="submit" class="submit-button" id="find-buddy-submit" disabled>Find Buddies</button>
 </form>
 
 {% if error %}
@@ -36,12 +36,19 @@
 
 {% if candidates is not none %}
 <div id="display-list" class="buddies">
+  {% if course_id and not own_request %}
+  <form method="POST" action="{{ url_for('create_buddy_request') }}">
+    <input type="hidden" name="course_id" value="{{ course_id }}">
+    <button type="submit" class="submit-button">Request a Buddy</button>
+  </form>
+  {% endif %}
+
   {% if candidates %}
     {% for buddy in candidates %}
     <div class="candidate-row">
       <span>{{ buddy.first_name }} {{ buddy.last_name }}</span>
       <form method="POST" action="{{ url_for('match_buddy_request', request_id=buddy.request_id) }}">
-        <button type="submit" class="btn submit-buddy">Match With Your Buddy</button>
+        <button type="submit" class="submit-buddy">Match With Your Buddy</button>
       </form>
     </div>
     {% endfor %}
@@ -49,11 +56,6 @@
     <p>The buddy you're looking for is not available...</p>
     {% if own_request %}
     <p class="hint">Your request is active. Other students searching this course can now find you.</p>
-    {% elif course_id %}
-    <form method="POST" action="{{ url_for('create_buddy_request') }}">
-      <input type="hidden" name="course_id" value="{{ course_id }}">
-      <button type="submit" class="submit-button">Request a Buddy</button>
-    </form>
     {% endif %}
   {% endif %}
 </div>

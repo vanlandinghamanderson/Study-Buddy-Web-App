@@ -3,5 +3,8 @@ $(function () {
         $('#find-buddy-submit').prop('disabled', !courseId);
         $('#course-buddies').empty();
         $('#find-buddy-msg').text('');
+        if (courseId) {
+            $('#course-form').trigger('submit');
+        }
     })
 })

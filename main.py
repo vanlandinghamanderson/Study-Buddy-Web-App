@@ -132,14 +132,20 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'student_id' not in session:
+            session.clear()
+            return redirect(url_for('login'))
+
+        if current_student() is None:
+            session.clear()
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated
 
 def current_student():
-    if 'student_id' in session:
-        return db.session.get(Student, session['student_id'])
-    return None
+    student_id = session.get('student_id')
+    if student_id is None:
+        return None
+    return db.session.get(Student, student_id)
 
 def student_buddy_matches(student_id):
     matches = (BuddyMatch.query
@@ -176,7 +182,6 @@ def index():
 def register():
     all_degrees = Degree.query.order_by(Degree.type).all()
     all_majors = Major.query.order_by(Major.name).all()
-    all_courses = Course.query.order_by(Course.department, Course.code).all()
 
     if request.method == 'POST':
         first_name = request.form.get('first_name')
@@ -185,23 +190,16 @@ def register():
         major_id = request.form.get('major_id')
         username = request.form.get('username')
         password = request.form.get('password')
-        course_ids = [int(course_id) for course_id in request.form.getlist('course_ids') if course_id]
 
-        # Checks to see if all needs to be required
         if not all([first_name, last_name, degree_id, major_id, username, password]):
             return render_template('register.html', all_degrees=all_degrees,
-                                   all_majors=all_majors, all_courses=all_courses,
+                                   all_majors=all_majors,
                                    error="All fields are required.")
-
-        if not course_ids:
-            return render_template('register.html', all_degrees=all_degrees,
-                                   all_majors=all_majors, all_courses=all_courses,
-                                   error="Please select at least one course you are taking.")
 
         # Checks if the username exists
         if Student.query.filter_by(username=username).first():
             return render_template('register.html', all_degrees=all_degrees,
-                                   all_majors=all_majors, all_courses=all_courses,
+                                   all_majors=all_majors,
                                    error="Username already existed.")
 
         # Adds the new student to the database
@@ -212,15 +210,6 @@ def register():
                           username=username)
         student.set_password(password)
         db.session.add(student)
-        db.session.flush()
-
-        for course_id in course_ids:
-            course = db.session.get(Course, course_id)
-            if not course:
-                continue
-            if not BuddyRequest.query.filter_by(student_id=student.id, course_id=course.id, status='waiting').first():
-                db.session.add(BuddyRequest(student_id=student.id, course_id=course.id))
-
         db.session.commit()
         session['student_id'] = student.id
         session['auth_event'] = 'register'
@@ -228,8 +217,7 @@ def register():
 
     return render_template('register.html',
                            all_degrees=all_degrees,
-                           all_majors=all_majors,
-                           all_courses=all_courses)
+                           all_majors=all_majors)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -249,6 +237,10 @@ def login():
 @login_required
 def dashboard():
     student = current_student()
+    if student is None:
+        session.clear()
+        return redirect(url_for('login'))
+
     matches = student_buddy_matches(student.id)
     groups = student_groups(student.id)
     auth_event = session.pop('auth_event', None)
@@ -283,6 +275,11 @@ def course_json():
 @app.route('/find_buddies', methods=['GET', 'POST'])
 @login_required
 def find_buddies():
+    student = current_student()
+    if student is None:
+        session.clear()
+        return redirect(url_for('login'))
+
     subjects = course_subjects()
     error = request.args.get('error')
     candidates = None
@@ -293,18 +290,25 @@ def find_buddies():
     requested_course_id = request.args.get('requested', type=int)
     if requested_course_id:
         course_id = requested_course_id
-        student = current_student()
         own_request = BuddyRequest.query.filter_by(
             student_id=student.id, course_id=requested_course_id, status='waiting'
         ).first()
         request_posted = own_request is not None
+        waiting = (BuddyRequest.query
+                   .filter_by(course_id=requested_course_id, status='waiting')
+                   .filter(BuddyRequest.student_id != student.id)
+                   .order_by(BuddyRequest.created_at.asc())
+                   .all())
+        candidates = [{'request_id': buddy_request.id,
+                       'first_name': buddy_request.student.first_name,
+                       'last_name': buddy_request.student.last_name}
+                      for buddy_request in waiting]
 
     if request.method == 'POST':
         course_id = request.form.get('course_id', type=int)
         if not course_id:
             error = 'Please select a course...'
         else:
-            student = current_student()
             own_request = BuddyRequest.query.filter_by(
                 student_id=student.id, course_id=course_id, status='waiting'
             ).first()
@@ -328,6 +332,10 @@ def find_buddies():
 @login_required
 def create_buddy_request():
     student = current_student()
+    if student is None:
+        session.clear()
+        return redirect(url_for('login'))
+
     course_id = request.form.get('course_id', type=int)
     course = db.session.get(Course, course_id) if course_id else None
     if not course:
@@ -556,7 +564,17 @@ def seed_students():
         course = Course.query.filter_by(department=department, code=code).first()
         if not course:
             return
-        if BuddyRequest.query.filter_by(student_id=student_row.id, course_id=course.id).first():
+        existing_request = BuddyRequest.query.filter_by(
+            student_id=student_row.id, course_id=course.id
+        ).first()
+        if existing_request:
+            if existing_request.status == 'matched':
+                existing_match = BuddyMatch.query.filter_by(course_id=course.id).filter(
+                    db.or_(BuddyMatch.student_a_id == student_row.id,
+                           BuddyMatch.student_b_id == student_row.id)
+                ).first()
+                if not existing_match:
+                    existing_request.status = 'waiting'
             return
         db.session.add(BuddyRequest(student_id=student_row.id, course_id=course.id))
 

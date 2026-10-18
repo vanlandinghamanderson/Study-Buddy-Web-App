@@ -226,7 +226,7 @@ p {
 
 /* ---------- Submit Button ---------- */
 
-.submit-button {
+.submit-button, .submit-buddy, .join-a-group {
   background-color: #7400aa;
   border: none;
   padding: 10px 40px;
@@ -266,6 +266,30 @@ p {
 .table thead th {
   border-top: none !important;
   border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  color: #111;
+  vertical-align: middle;
+  padding: .75rem .85rem;
+}
+
+.table td strong {
+  color: #111;
+}
+
+.table-actions {
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.table-actions form {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 thead {

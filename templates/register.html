@@ -46,16 +46,6 @@
         </div>
 
         <div class="form-group">
-            <label for="course_ids">Courses you're taking:</label>
-            <select id="course_ids" name="course_ids" multiple size="6" required>
-                {% for course in all_courses %}
-                <option value="{{ course.id }}">{{ course.department }} {{ course.code }} - {{ course.name }}</option>
-                {% endfor %}
-            </select>
-            <small>Hold Ctrl/Cmd to select multiple courses.</small>
-        </div>
-
-        <div class="form-group">
             <label for="password">Password:</label>
             <div class="password-wrap">
                 <input type="password" id="password" name="password" required autocomplete="new-password">
