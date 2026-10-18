@@ -176,6 +176,7 @@ def index():
 def register():
     all_degrees = Degree.query.order_by(Degree.type).all()
     all_majors = Major.query.order_by(Major.name).all()
+    all_courses = Course.query.order_by(Course.department, Course.code).all()
 
     if request.method == 'POST':
         first_name = request.form.get('first_name')
@@ -184,20 +185,26 @@ def register():
         major_id = request.form.get('major_id')
         username = request.form.get('username')
         password = request.form.get('password')
+        course_ids = [int(course_id) for course_id in request.form.getlist('course_ids') if course_id]
 
         # Checks to see if all needs to be required
         if not all([first_name, last_name, degree_id, major_id, username, password]):
             return render_template('register.html', all_degrees=all_degrees,
-                                   all_majors=all_majors,
+                                   all_majors=all_majors, all_courses=all_courses,
                                    error="All fields are required.")
-        
+
+        if not course_ids:
+            return render_template('register.html', all_degrees=all_degrees,
+                                   all_majors=all_majors, all_courses=all_courses,
+                                   error="Please select at least one course you are taking.")
+
         # Checks if the username exists
         if Student.query.filter_by(username=username).first():
             return render_template('register.html', all_degrees=all_degrees,
-                                   all_majors=all_majors,
+                                   all_majors=all_majors, all_courses=all_courses,
                                    error="Username already existed.")
-    
-        #Adds the new student to the database
+
+        # Adds the new student to the database
         student = Student(first_name=first_name,
                           last_name=last_name,
                           degree_id=degree_id,
@@ -205,14 +212,24 @@ def register():
                           username=username)
         student.set_password(password)
         db.session.add(student)
+        db.session.flush()
+
+        for course_id in course_ids:
+            course = db.session.get(Course, course_id)
+            if not course:
+                continue
+            if not BuddyRequest.query.filter_by(student_id=student.id, course_id=course.id, status='waiting').first():
+                db.session.add(BuddyRequest(student_id=student.id, course_id=course.id))
+
         db.session.commit()
         session['student_id'] = student.id
         session['auth_event'] = 'register'
         return redirect(url_for('dashboard'))
 
-    return render_template('register.html', 
-                           all_degrees=all_degrees, 
-                           all_majors=all_majors)
+    return render_template('register.html',
+                           all_degrees=all_degrees,
+                           all_majors=all_majors,
+                           all_courses=all_courses)
 
 
 @app.route('/login', methods=['GET', 'POST'])
