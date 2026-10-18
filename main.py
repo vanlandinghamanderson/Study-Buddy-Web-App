@@ -1,19 +1,29 @@
+import importlib.util
 import os
 from flask import Flask, request, redirect, render_template, jsonify, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import IntegrityError
 
 load_dotenv()
+
+
+def get_database_url():
+    database_url = os.getenv('DATABASE_URL')
+
+    if database_url and database_url.startswith('postgresql://'):
+        if importlib.util.find_spec('psycopg') is None:
+            database_url = database_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
+
+    return database_url or 'sqlite:///study_buddy.db'
+
 
 app = Flask(__name__)
 
 # Configure the database connection
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///study_buddy.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -72,7 +82,7 @@ class BuddyRequest(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     status = db.Column(db.String(10), default='waiting')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     student = db.relationship('Student')
     course = db.relationship('Course')
@@ -85,7 +95,7 @@ class BuddyMatch(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     student_a_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     student_b_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     course = db.relationship('Course')
     student_a = db.relationship('Student', foreign_keys=[student_a_id])
@@ -99,13 +109,11 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     is_full = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     course = db.relationship('Course')
     members = db.relationship('GroupMember', backref='group', lazy=True)
 
-    # what does that mean?
-    # 
     @property
     def member_count(self):
         return len(self.members)
@@ -327,7 +335,6 @@ def match_buddy_request(request_id):
         return redirect(url_for('find_buddies', error='That student is not takimg the course'))
     if waiting.student_id == student.id:
         return redirect(url_for('find_buddies'), error='You cannot match with yourself...')
-    course = waiting.course
 
     already_matched = BuddyMatch.query.filter(
         BuddyMatch.course_id == waiting.course_id,

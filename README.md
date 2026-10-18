@@ -62,8 +62,8 @@ Student picks a course
  
 2. Create and activate a virtual environment:
 ```bash
-   python -m venv venv
-   source venv/bin/activate   # Windows: venv\Scripts\activate
+   python -m venv .venv
+   source .venv/bin/activate   # Windows: venv\Scripts\activate
 ```
  
 3. Install dependencies:
@@ -73,7 +73,7 @@ Student picks a course
  
 4. *(Optional)* To use PostgreSQL, create a `.env` file in the project root:
 ```
-   DATABASE_URL=postgresql://your-user:your-password@localhost:5432/study_buddy
+   DATABASE_URL=postgresql+psycopg2://your-user:your-password@localhost:5432/study_buddy
    SECRET_KEY=your-secret-key
 ```
  
