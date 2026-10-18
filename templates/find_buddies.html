@@ -41,7 +41,7 @@
     <div class="candidate-row">
       <span>{{ buddy.first_name }} {{ buddy.last_name }}</span>
       <form method="POST" action="{{ url_for('match_buddy_request', request_id=buddy.request_id) }}">
-        <button type="submit" class="submit-buddy">Match With Your Buddy</button>
+        <button type="submit" class="btn submit-buddy">Match With Your Buddy</button>
       </form>
     </div>
     {% endfor %}
