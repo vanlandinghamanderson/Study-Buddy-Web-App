@@ -409,14 +409,15 @@ def join_specific_group(group_id):
     if already_in:
         return redirect(url_for('find_groups', error='You are already in this group!'))
 
-    if group.is_full or group.member_count >= GROUP_SIZE:
+    member_count = GroupMember.query.filter_by(group_id=group.id).count()
+    if group.is_full or member_count >= GROUP_SIZE:
         return redirect(url_for('find_groups', error='Group is already full'))
 
     db.session.add(GroupMember(group_id=group.id, student_id=student.id))
     db.session.flush()
 
-    if group.member_count >= GROUP_SIZE:
-        group.is_full = True
+    member_count = GroupMember.query.filter_by(group_id=group.id).count()
+    group.is_full = member_count >= GROUP_SIZE
     db.session.commit()
     return redirect(url_for('dashboard'))
 
